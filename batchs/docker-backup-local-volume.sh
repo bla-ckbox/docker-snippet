@@ -16,9 +16,7 @@ for CONTAINER_ID in $( docker ps -q -f "$1" ); do
     unset VOLUMES NAME
     VOLUMES=$( docker inspect -f '{{ range .Mounts }}{{ if eq .Driver "local" }}{{ .Destination }}{{ end }}{{ end }}' ${CONTAINER_ID} | sed 's/[^ ]\+\/logs\?\/\?[^ ]* \?//' )
     NAME=$( docker inspect -f '{{.Name}}' ${CONTAINER_ID} )
-    if [ $(find /opt/mysqldump -type f  -name "${NAME#/}-*.sql.gz" -mmin -240 | wc -l) -ne 0 ]; then
-      echo "Backup ${NAME} [${CONTAINER_ID}]: Skipping (Databases already dumped)";
-    elif [ -n "$VOLUMES" ] ; then
+    if [ -n "$VOLUMES" ] ; then
       echo "Backup ${NAME} [${CONTAINER_ID}]: $VOLUMES"
       if [ -f "${BACKUP_DIR}${NAME}.tgz" ] ; then rm -f "${BACKUP_DIR}${NAME}.tgz"; fi
       docker pause ${CONTAINER_ID} >> /dev/null
